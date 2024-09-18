@@ -57,7 +57,7 @@ func main() {
 	go broker.Start(ctx)
 	fetcher := etherum.NewFetcher(
 		cfg.RPC.Interval,
-		etherum.NewRpcClient(node, cfg.RPC),
+		etherum.NewRPCClient(node, cfg.RPC),
 		txChan,
 		blocksChan,
 	)

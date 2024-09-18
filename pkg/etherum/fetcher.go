@@ -10,13 +10,13 @@ import (
 
 type Fetcher struct {
 	interval   time.Duration
-	client     *RpcClient
+	client     *RPCClient
 	lastBlock  int
 	txChan     chan<- model.Transaction
 	blocksChan chan<- int
 }
 
-func NewFetcher(interval time.Duration, client *RpcClient, txChan chan<- model.Transaction, blocksChan chan<- int) *Fetcher {
+func NewFetcher(interval time.Duration, client *RPCClient, txChan chan<- model.Transaction, blocksChan chan<- int) *Fetcher {
 	return &Fetcher{
 		lastBlock:  0,
 		interval:   interval,
@@ -30,12 +30,12 @@ func (f *Fetcher) Start(ctx context.Context) error {
 	// producer should close channels
 	defer close(f.txChan)
 	defer close(f.blocksChan)
-	filterId, err := f.client.createFilter()
+	filterID, err := f.client.createFilter()
 	if err != nil {
 		logging.Logger().Err(err).Str("module", "etherum").Msg("Cannot create filter")
 		return err
 	}
-	logging.Logger().Info().Str("module", "etherum").Msgf("Filter %s created", filterId)
+	logging.Logger().Info().Str("module", "etherum").Msgf("Filter %s created", filterID)
 
 	ticker := time.NewTicker(f.interval)
 	for {
@@ -45,7 +45,7 @@ func (f *Fetcher) Start(ctx context.Context) error {
 				Str("module", "fetcher").Msg("Context done, stopping fetcher")
 			return nil
 		case <-ticker.C:
-			entries, err := f.client.getChanges(filterId)
+			entries, err := f.client.getChanges(filterID)
 			start := time.Now()
 			if err != nil {
 				logging.Logger().Err(err).Str("module", "etherum").Msg("Cannot get filter changes")

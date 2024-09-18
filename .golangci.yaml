@@ -1,13 +1,11 @@
 run:
   timeout: 5m
 
-
 output:
   sort-results: true
 
 linters:
   enable:
-    - depguard
     - gofumpt
     - goimports
     - revive
@@ -19,6 +17,9 @@ linters:
 
 issues:
   max-same-issues: 0
+  exclude-dirs:
+    - (^|/)usr/local($|/)
+    - (^|/)pkg/mod($|/)
   exclude-rules:
     - path: _test.go
       linters:

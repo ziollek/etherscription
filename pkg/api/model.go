@@ -20,7 +20,7 @@ type SubscriptionsResponse struct {
 }
 
 type GetCurrentBlocResponse struct {
-	BlockId int `json:"block_id"`
+	BlockID int `json:"block_id"`
 }
 
 type GetTransactionsResponse struct {

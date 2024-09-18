@@ -17,7 +17,7 @@ func NewHandler(parser parser.Parser) *Handler {
 }
 
 func (h *Handler) GetCurrentBlock(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
-	Response(w, http.StatusOK, GetCurrentBlocResponse{BlockId: h.parser.GetCurrentBlock()})
+	Response(w, http.StatusOK, GetCurrentBlocResponse{BlockID: h.parser.GetCurrentBlock()})
 }
 
 func (h *Handler) GetTransactions(w http.ResponseWriter, _ *http.Request, params httprouter.Params) {

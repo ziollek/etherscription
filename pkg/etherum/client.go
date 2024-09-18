@@ -17,7 +17,7 @@ const (
 	createFilter     = "eth_newFilter"
 	getFilterChanges = "eth_getFilterChanges"
 	getTransaction   = "eth_getTransactionByHash"
-	rpcId            = 111
+	rpcID            = 111
 	rpcVersion       = "2.0"
 	startBlock       = "latest"
 )
@@ -28,10 +28,10 @@ type createFilterRequest struct {
 	Address   string `json:"address,omitempty"`
 }
 
-type jsonRpcRequest struct {
-	JsonRPC string      `json:"jsonrpc"`
+type jsonRPCRequest struct {
+	JSONRPC string      `json:"jsonrpc"`
 	Method  string      `json:"method"`
-	Id      int         `json:"id"`
+	ID      int         `json:"id"`
 	Params  interface{} `json:"params"`
 }
 
@@ -44,37 +44,37 @@ func (m rpcError) ToError() error {
 	return fmt.Errorf("RPC error code: %d,  %s", m.Code, m.Message)
 }
 
-type jsonRpcResponse[T any] struct {
-	JsonRPC string    `json:"jsonrpc"`
+type jsonRPCResponse[T any] struct {
+	JSONRPC string    `json:"jsonrpc"`
 	Method  string    `json:"method"`
 	Result  T         `json:"result"`
 	Error   *rpcError `json:"error"`
 }
 
-func (response *jsonRpcResponse[T]) ToResponse() (T, error) {
+func (response *jsonRPCResponse[T]) ToResponse() (T, error) {
 	if response.Error != nil {
 		return response.Result, response.Error.ToError()
 	}
 	return response.Result, nil
 }
 
-func newEncodedJsonRpcRequest(method string, params interface{}) ([]byte, error) {
-	return json.Marshal(jsonRpcRequest{
-		JsonRPC: rpcVersion,
+func newEncodedJSONRPCRequest(method string, params interface{}) ([]byte, error) {
+	return json.Marshal(jsonRPCRequest{
+		JSONRPC: rpcVersion,
 		Method:  method,
 		Params:  params,
-		Id:      rpcId,
+		ID:      rpcID,
 	})
 }
 
-type RpcClient struct {
+type RPCClient struct {
 	node          string
 	httpClient    *http.Client
 	slowDownDelay time.Duration
 }
 
-func NewRpcClient(node string, cfg *config.RPCConfig) *RpcClient {
-	return &RpcClient{
+func NewRPCClient(node string, cfg *config.RPCConfig) *RPCClient {
+	return &RPCClient{
 		node: node,
 		httpClient: &http.Client{
 			Timeout: cfg.Timeout,
@@ -83,32 +83,32 @@ func NewRpcClient(node string, cfg *config.RPCConfig) *RpcClient {
 	}
 }
 
-func (c *RpcClient) createFilter() (string, error) {
-	result := jsonRpcResponse[string]{}
+func (c *RPCClient) createFilter() (string, error) {
+	result := jsonRPCResponse[string]{}
 	if err := c.makeCall(createFilter, []createFilterRequest{{FromBlock: startBlock}}, &result); err != nil {
 		return "", err
 	}
 	return result.ToResponse()
 }
 
-func (c *RpcClient) getChanges(filterId string) (logEntries, error) {
-	result := jsonRpcResponse[logEntries]{}
-	if err := c.makeCall(getFilterChanges, []string{filterId}, &result); err != nil {
+func (c *RPCClient) getChanges(filterID string) (logEntries, error) {
+	result := jsonRPCResponse[logEntries]{}
+	if err := c.makeCall(getFilterChanges, []string{filterID}, &result); err != nil {
 		return nil, err
 	}
 	return result.ToResponse()
 }
 
-func (c *RpcClient) getTransaction(hash string) (*model.RawTransaction, error) {
-	result := jsonRpcResponse[*model.RawTransaction]{}
+func (c *RPCClient) getTransaction(hash string) (*model.RawTransaction, error) {
+	result := jsonRPCResponse[*model.RawTransaction]{}
 	if err := c.makeCall(getTransaction, []string{hash}, &result); err != nil {
 		return nil, fmt.Errorf("error while read body from HTTP response: %w", err)
 	}
 	return result.ToResponse()
 }
 
-func (c *RpcClient) makeCall(method string, input, output interface{}) error {
-	payload, err := newEncodedJsonRpcRequest(method, input)
+func (c *RPCClient) makeCall(method string, input, output interface{}) error {
+	payload, err := newEncodedJSONRPCRequest(method, input)
 	logging.Logger().Debug().Str("payload", string(payload)).Msgf("payload for %s", method)
 	if err != nil {
 		return fmt.Errorf("error while encoding JSON RPC request: %w", err)
