@@ -111,11 +111,67 @@ rpc:
   too_many_requests_delay: 500ms # delay between requests when too many requests are sent to the node
 ``` 
 
-### Configuring the service
+### interacting with API
+
+It is quite convenient to use `curl` to interact with the service.
+To easily subscribe to an address, it is recommended to run service with default configuration option `store_all_transactions: true` to store all incoming transactions.
+Thanks to logging, you can see what transactions are fetched and stored.
+
+```bash
+make NODE=YOUR-NODE run
+...
+7:56PM INF consumed from=0xae2fc483527b8ef99eb5d9b44875f005ba1fae13 module=parser to=0x1f2f10d1c40777ae1da742455c65828ff36df387 value=130892167251
+```
+Having address `0xae2fc483527b8ef99eb5d9b44875f005ba1fae13` you can use the following bash snippet
+to subscribe for transactions and fetch first batch that will contain the above transaction:
+
+```bash
+> ADDRESS=0xae2fc483527b8ef99eb5d9b44875f005ba1fae13
+> curl --data "{\"address\": \"$ADDRESS\"}" localhost:8888/api/subscribe
+{
+	"status": true
+}
+> curl localhost:8888/api/new-transactions/$ADDRESS
+{
+	"transactions": [
+		{
+			"from": "0xae2fc483527b8ef99eb5d9b44875f005ba1fae13",
+			"to": "0x1f2f10d1c40777ae1da742455c65828ff36df387",
+			"value": 130892167251
+		}
+    ]
+}
+```
 
 ## Development
 
-The project is written in Go. It uses go modules for dependency management. To run tests, you can use `make test` command.
+The project is written in Go. It uses go modules for dependency management.
+
+### Project structure
+
+The project is divided into public and internal packages.
+Public ones are stored under `pkg` directory and internal under `internal` directory.
+The `main.go` file is located in `cmd/etherscription` directory.
+Internal packages are used for logic related to the in-memory storage layer. 
+To make this layer more flexible, generic types are used. 
+To allow reliable parallel access, golang native sync package is used.
+Public packages are used for:
+- API handling: `api`
+- Parsing configuration: `config`
+- RPC connectivity and logic responsible for polling new transactions: `ethereum`
+- configuring external logging: `logging`
+- Consuming and providing transactions for API: `parser`
+- Extracting storage interface that can be implemented by different storage backends: `storage`
+
+### Testing
+
+To run tests on local machine, you can use `make test` command.
+
+### CI
+
+There is configured `Github Action` that verifies all PR & commits to `main` branch.
+It consists of linter & tests checks.
+
 
 ## Further development
 
@@ -125,5 +181,6 @@ There are a lot of things to do to make this project more production ready. Some
 - [ ] Add retry logic to handle connection problems with ethereum node
 - [ ] Add an ability to easily change logging level & format (code is already prepared for that)
 - [ ] Add metrics and expose them via prometheus
-- [ ] Switch storage to something durable to avoid loosing data on restart
+- [ ] Switch storage to something durable to avoid losing data on restart
 - [ ] Add parallelism where it makes sense
+- [ ] Extending & converting the transaction representation to future needs

@@ -58,7 +58,7 @@ func (f *Fetcher) Start(ctx context.Context) error {
 						// there should be a retry mechanism
 						logging.Logger().Err(err).Str("module", "etherum").Msgf("Cannot get transaction %s", txHash)
 					} else {
-						logging.Logger().Info().
+						logging.Logger().Debug().
 							Str("module", "etherum").
 							Str("transaction", txHash).
 							Msgf("New transaction fetched: %+v", transaction)
