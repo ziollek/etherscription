@@ -1,0 +1,8 @@
+storage:
+  retention: 300s
+  clean_interval: 3s
+  store_all_transactions: true
+rpc:
+  timeout: 5s
+  interval: 3s
+  too_many_requests_delay: 500ms

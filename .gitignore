@@ -1,0 +1,22 @@
+# Golang
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+dist/*
+bin/*
+build/
+
+# Intellij
+.idea
+*.iml
+
+# VisualStudio Code
+.vscode/*
+
+#Mac OS
+.DS_Store
