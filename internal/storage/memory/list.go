@@ -32,19 +32,20 @@ func (entries Entries[T]) Values() []T {
 
 type ListStorage[T any] struct {
 	entries map[string]Entries[T]
-	sync.RWMutex
+	mutex   sync.RWMutex
 }
 
 func NewListStorage[T any]() *ListStorage[T] {
 	return &ListStorage[T]{
 		entries: make(map[string]Entries[T]),
+		mutex:   sync.RWMutex{},
 	}
 }
 
 func (storage *ListStorage[T]) FetchAndFlush(key string) []T {
 	// this operation must be atomic to not lose any (not expired) data
-	storage.Lock()
-	defer storage.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 	if list, found := storage.entries[key]; found {
 		delete(storage.entries, key)
 		return list.Expire(time.Now()).Values()
@@ -53,8 +54,8 @@ func (storage *ListStorage[T]) FetchAndFlush(key string) []T {
 }
 
 func (storage *ListStorage[T]) Append(key string, value T, ttl time.Duration) {
-	storage.Lock()
-	defer storage.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 	if _, found := storage.entries[key]; !found {
 		storage.entries[key] = Entries[T]{}
 	}
@@ -62,8 +63,8 @@ func (storage *ListStorage[T]) Append(key string, value T, ttl time.Duration) {
 }
 
 func (storage *ListStorage[_]) GetKeys() []string {
-	storage.RLock()
-	defer storage.RUnlock()
+	storage.mutex.RLock()
+	defer storage.mutex.RUnlock()
 	keys := make([]string, 0, len(storage.entries))
 	for key := range storage.entries {
 		keys = append(keys, key)
@@ -72,8 +73,8 @@ func (storage *ListStorage[_]) GetKeys() []string {
 }
 
 func (storage *ListStorage[_]) CleanOutdated(key string) (int, int) {
-	storage.Lock()
-	defer storage.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 	if entries, found := storage.entries[key]; found {
 		after := entries.Expire(time.Now())
 		if len(after) > 0 {

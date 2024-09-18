@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/ziollek/etherscription/pkg/logging"
-	"gopkg.in/yaml.v3"
+	yaml "gopkg.in/yaml.v3"
 )
 
 const configPath = "./configuration/config.yaml"

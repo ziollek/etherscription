@@ -8,24 +8,25 @@ import (
 
 type KVStorage[T any] struct {
 	entries map[string]T
-	sync.RWMutex
+	mutex   sync.RWMutex
 }
 
 func NewKVStorage[T any]() storage.KVSaver[T] {
 	return &KVStorage[T]{
 		entries: make(map[string]T),
+		mutex:   sync.RWMutex{},
 	}
 }
 
 func (storage *KVStorage[T]) Get(key string) (T, bool) {
-	storage.RLock()
-	defer storage.RUnlock()
+	storage.mutex.RLock()
+	defer storage.mutex.RUnlock()
 	value, found := storage.entries[key]
 	return value, found
 }
 
 func (storage *KVStorage[T]) Set(key string, value T) {
-	storage.Lock()
-	defer storage.Unlock()
+	storage.mutex.Lock()
+	defer storage.mutex.Unlock()
 	storage.entries[key] = value
 }

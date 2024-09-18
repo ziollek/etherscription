@@ -7,7 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/ziollek/etherscription/pkg/config"
 	"github.com/ziollek/etherscription/pkg/model"
-	"github.com/ziollek/etherscription/pkg/storage/mocks"
+	"github.com/ziollek/etherscription/pkg/storage/mock_storage"
 )
 
 func TestShouldConsumeInformationAboutParsedBlockId(t *testing.T) {
